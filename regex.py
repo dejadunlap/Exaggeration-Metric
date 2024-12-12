@@ -1,11 +1,15 @@
 import re
 import os
+import torch
+# from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
 
 class AAVE_Feature:
 
     def __init__(self, folder):
         self.dataset = ""
         self.folder = folder
+        self.count = 0
 
     """
     Input: none
@@ -13,6 +17,7 @@ class AAVE_Feature:
     Function reads in the files from the folder and returns the cleaned version of the text from them
     """
     def read_files(self):
+        file_count = 0
         for sub_folder in os.listdir(self.folder):
             folder_path = os.path.join(self.folder, sub_folder)
             for file in os.listdir(folder_path): 
@@ -42,6 +47,8 @@ class AAVE_Feature:
                 # only pulling the lines of the dataset that are spoken by the speaker and are actual pieces of content
                 if "se" in speaker and "(pause " not in content:
                     interview.append(line[3])
+                    self.count += 1
+                    
         
         text = " ".join(interview)
         cleaned_text = re.sub(r'[^\w\s]', '', text)
@@ -69,6 +76,7 @@ class AAVE_Feature:
         # constructing bigrams from the dataset
         bigrams = self.n_grams(self.dataset)
         aint_bigrams = []
+        print(self.count)
 
         # finding all the bigrams that contain aint
         for bigram in bigrams:
@@ -121,6 +129,9 @@ class AAVE_Feature:
 
         return prob_pre, prob_follow
 
+    def llm_model_evaluation(self):
+        print(torch.cuda.is_available())
+        gpt2_model = GPT2LMHeadModel.from_pretrained("gpt2").to(device)
         
 
 
